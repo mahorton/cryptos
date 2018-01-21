@@ -13,10 +13,11 @@ max_quantity = 100
 n_levels = 5
 
 max_iters = 60*24
+display_freq = 10
 
 btrx = bittrex.Bittrex(api_key=api_key["api_key"], 
 					   api_secret=api_key["api_secret"], 
-					   calls_per_second=1, 
+					   calls_per_second=1/30, 
 					   api_version=default_version)
 
 
@@ -92,8 +93,11 @@ while True:
 
 	assert len(order_uuids) == 2 * n_levels, "Number of strategy orders is off... got " + str(order_uuids)
 	n_iters += 1
-	if n_iters % 10 == 0:
+	if n_iters % display_freq == 0:
 		print("Completed iteration " + str(n_iters))
+		order_prices = [order["Limit"] for order in orders]
+		order_prices.sort()
+		print(order_prices)
 
 	if n_iters > max_iters:
 		break
