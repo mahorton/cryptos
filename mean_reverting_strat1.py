@@ -88,9 +88,10 @@ while True:
 							rate=max(current_ticker["Bid"], order["Limit"] + price_delta)
 				)
 
-	new_orders = btrx.get_open_orders(market=market)["result"]
-	orders = [order for order in new_orders if order["OrderUuid"] not in ignore_orders]
-	order_uuids = [order["OrderUuid"] for order in orders]
+	if len(missing_orders) > 0:
+		new_orders = btrx.get_open_orders(market=market)["result"]
+		orders = [order for order in new_orders if order["OrderUuid"] not in ignore_orders]
+		order_uuids = [order["OrderUuid"] for order in orders]
 
 	assert len(order_uuids) == 2 * n_levels, "Number of strategy orders is off... got " + str(order_uuids)
 	n_iters += 1
