@@ -1,5 +1,4 @@
 import json
-
 import bittrex
 
 with open("api_key.json", 'r') as fp:
@@ -44,16 +43,18 @@ new_orders = btrx.get_open_orders(market=market)["result"]
 orders = [order for order in new_orders if order["OrderUuid"] not in ignore_orders]
 order_uuids = [order["OrderUuid"] for order in orders]
 
+print(orders)
+print(order_uuids)
+
 # exit condition
 n_failed_order_calls = 0
 n_iters = 0
 
 while True:
 	btrx.wait()
-
+	
 	# request open order list, filter non-strategy orders
 	order_call = btrx.get_open_orders(market=market)
-	orders = []
 	if order_call["success"]:
 		new_orders = [order for order in order_call["result"] if order["OrderUuid"] not in ignore_orders]
 		n_failed_order_calls = 0
@@ -65,6 +66,7 @@ while True:
 	
 	# completed orders will be missing.
 	missing_orders = [order for order in new_orders if order["OrderUuid"] not in order_uuids]
+	print(missing_orders)
 	if len(missing_orders) == 0:
 		continue
 
