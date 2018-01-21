@@ -13,7 +13,7 @@ default_version = "v1.1"
 btrx = bittrex.Bittrex(api_key=api_key["api_key"], 
 					   api_secret=api_key["api_secret"], 
 					   calls_per_second=1, 
-					   api_version=version)
+					   api_version=default_version)
 
 
 t_cost = .0025

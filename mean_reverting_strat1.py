@@ -8,9 +8,9 @@ with open("api_key.json", 'r') as fp:
 default_version = "v1.1"
 
 market = "ETH-ADA"
-price_delta = .0002
+price_delta = .000004
 max_quantity = 100
-n_levels = 3
+n_levels = 5
 
 max_iters = 60*24
 
@@ -70,12 +70,17 @@ while True:
 	current_ticker = btrx.get_ticker(market)["result"]
 
 	for order in missing_orders:
+
 		if order["OrderType"] == "LIMIT_SELL":
+			print("Sell order filled:")
+			print(order)
 			btrx.buy_limit(market=market,
 							quantity=max_quantity//n_levels,
 							rate=min(current_ticker["Ask"], order["Limit"] - price_delta)
 				)
 		else:
+			print("Buy order filled:")
+			print(order)
 			btrx.sell_limit(market=market,
 							quantity=max_quantity//n_levels,
 							rate=max(current_ticker["Bid"], order["Limit"] + price_delta)
@@ -87,6 +92,8 @@ while True:
 
 	assert len(order_uuids) == 2 * n_levels, "Number of strategy orders is off... got " + str(order_uuids)
 	n_iters += 1
+	if n_iters % 10 == 0:
+		print("Completed iteration " + str(n_iters))
 
 	if n_iters > max_iters:
 		break
