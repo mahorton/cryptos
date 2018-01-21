@@ -3,14 +3,18 @@ import json
 
 import bittrex
 
-api_key = "xxx"
-secret = "xxx"
+
+
+with open("api_key.json", 'r') as fp:
+	api_key = json.load(fp)
 default_version = "v1.1"
 
-btrx = bittrex.Bittrex(api_key=api_key, 
-					   api_secret=secret, 
+
+btrx = bittrex.Bittrex(api_key=api_key["api_key"], 
+					   api_secret=api_key["api_secret"], 
 					   calls_per_second=1, 
-					   api_version=default_version)
+					   api_version=version)
+
 
 t_cost = .0025
 markets = []
@@ -120,7 +124,7 @@ def buy_distribution(filename, starting_coin="BTC", amount=None):
 		if not market:
 			continue
 
-		if direction == "buy"
+		if direction == "buy":
 			price = btrx.get_ticker(market)["result"]["Ask"]
 			btrx.buy_limit(market=market, 
 								#order_type="MARKET",
