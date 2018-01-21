@@ -65,10 +65,9 @@ while True:
 		break
 	
 	# completed orders will be missing.
-	missing_orders = [order for order in new_orders if order["OrderUuid"] not in order_uuids]
-	print(missing_orders)
-	if len(missing_orders) == 0:
-		continue
+	new_uuids = [order["OrderUuid"] for order in new_orders]
+	missing_uuids = [uuid for uuid in order_uuids if uuid not in new_uuids]
+	missing_orders = [order for order in orders if order["OrderUuid"] in missing_uuids]
 
 	current_ticker = btrx.get_ticker(market)["result"]
 
