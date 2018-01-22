@@ -48,7 +48,6 @@ n_failed_order_calls = 0
 n_iters = 0
 
 while True:
-	btrx.wait()
 	
 	# request open order list, filter non-strategy orders
 	order_call = btrx.get_open_orders(market=market)
@@ -85,20 +84,25 @@ while True:
 							rate=max(current_ticker["Bid"], order["Limit"] + price_delta)
 				)
 
+	btrx.wait()
+
 	if len(missing_orders) > 0:
 		new_orders = btrx.get_open_orders(market=market)["result"]
 		orders = [order for order in new_orders if order["OrderUuid"] not in ignore_orders]
 		order_uuids = [order["OrderUuid"] for order in orders]
 
 	#assert len(order_uuids) == 2 * n_levels, "Number of strategy orders is off... got " + str(len(order_uuids))
-	if len(order_uuids) != 2 * n_levels: print("WARNING: got " + str(len(order_uuids)) + " orders. Expected " + str(2*n_levels)+".")
+	if len(order_uuids) != 2 * n_levels: 
+		print("WARNING: got " + str(len(order_uuids)) + " orders. Expected " + str(2*n_levels)+".")
+		print("number of missing orders found:", len(missing_orders))
 
 	n_iters += 1
 	if n_iters % display_freq == 0:
 		print("Completed iteration " + str(n_iters))
-		order_prices = [order["Limit"] for order in orders]
-		order_prices.sort()
+		order_prices = sorted([order["Limit"] for order in orders])
 		print(order_prices)
+		order_types = sorted([order["OrderType"] for order in orders])
+		print(order_types)
 
 	if n_iters > max_iters:
 		break
