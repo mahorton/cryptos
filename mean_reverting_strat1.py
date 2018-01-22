@@ -16,7 +16,7 @@ display_freq = 10
 
 btrx = bittrex.Bittrex(api_key=api_key["api_key"], 
 					   api_secret=api_key["api_secret"], 
-					   calls_per_second=1/30, 
+					   calls_per_second=1/20, 
 					   api_version=default_version)
 
 
@@ -58,8 +58,9 @@ while True:
 		n_failed_order_calls += 1
 		if n_failed_order_calls > 10:
 			print("failed to retrieve orders 10 consecutive times... exiting strategy")
-		break
-	
+			break
+		continue
+
 	# completed orders will be missing.
 	new_uuids = [order["OrderUuid"] for order in new_orders]
 	missing_uuids = [uuid for uuid in order_uuids if uuid not in new_uuids]
@@ -71,14 +72,14 @@ while True:
 
 		if order["OrderType"] == "LIMIT_SELL":
 			print("Sell order filled:")
-			print(order)
+			print("price:", order["Limit"])
 			btrx.buy_limit(market=market,
 							quantity=max_quantity//n_levels,
 							rate=min(current_ticker["Ask"], order["Limit"] - price_delta)
 				)
 		else:
 			print("Buy order filled:")
-			print(order)
+			print("price:", order["Limit"])
 			btrx.sell_limit(market=market,
 							quantity=max_quantity//n_levels,
 							rate=max(current_ticker["Bid"], order["Limit"] + price_delta)
@@ -90,6 +91,9 @@ while True:
 		new_orders = btrx.get_open_orders(market=market)["result"]
 		orders = [order for order in new_orders if order["OrderUuid"] not in ignore_orders]
 		order_uuids = [order["OrderUuid"] for order in orders]
+
+	btrx.wait()
+	btrx.wait()
 
 	#assert len(order_uuids) == 2 * n_levels, "Number of strategy orders is off... got " + str(len(order_uuids))
 	if len(order_uuids) != 2 * n_levels: 
