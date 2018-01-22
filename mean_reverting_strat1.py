@@ -43,9 +43,6 @@ new_orders = btrx.get_open_orders(market=market)["result"]
 orders = [order for order in new_orders if order["OrderUuid"] not in ignore_orders]
 order_uuids = [order["OrderUuid"] for order in orders]
 
-print(orders)
-print(order_uuids)
-
 # exit condition
 n_failed_order_calls = 0
 n_iters = 0
@@ -93,7 +90,9 @@ while True:
 		orders = [order for order in new_orders if order["OrderUuid"] not in ignore_orders]
 		order_uuids = [order["OrderUuid"] for order in orders]
 
-	assert len(order_uuids) == 2 * n_levels, "Number of strategy orders is off... got " + str(order_uuids)
+	#assert len(order_uuids) == 2 * n_levels, "Number of strategy orders is off... got " + str(len(order_uuids))
+	if len(order_uuids) != 2 * n_levels: print("WARNING: got " + str(len(order_uuids)) + " orders. Expected " + str(2*n_levels)+".")
+
 	n_iters += 1
 	if n_iters % display_freq == 0:
 		print("Completed iteration " + str(n_iters))
