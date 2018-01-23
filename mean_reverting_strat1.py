@@ -5,10 +5,12 @@ with open("api_key.json", 'r') as fp:
 	api_key = json.load(fp)
 
 default_version = "v1.1"
-market = "ETH-ADA"
-price_delta = .000004
-max_quantity = 100
-n_levels = 5
+
+# strategy parameters
+market = "ETH-XRP"
+price_delta = .000006
+max_quantity = 300
+n_levels = 6
 
 max_iters = 60*24
 display_freq = 10
@@ -49,18 +51,17 @@ if len(order_uuids) != 2 * n_levels:
 	for order in orders:
 		btrx.cancel(order["OrderUuid"])
 	assert False
+else:
+	print("Initial orders placed... entering strategy.")
 
 # initialize stuff
-n_failed_order_calls = 0
 n_iters = 0
 missing_orders = []
 missing_uuids = []
 new_orders = []
 
 while True:
-	
 	for order in missing_orders:
-
 		current_ticker = btrx.get_ticker(market)["result"]
 
 		if order["OrderType"] == "LIMIT_SELL":
@@ -80,11 +81,15 @@ while True:
 		else:
 			print("Got unexpected OrderType! : " + order["OrderType"])
 
-
+	sub_iters = 0
 	while len(new_orders) != len(missing_orders):
+		sub_iters += 1
 		new_order_call = btrx.get_open_orders(market=market)
 		new_orders = [order for order in new_order_call["result"] if order["OrderUuid"] not in ignore_orders
 																	and order["OrderUuid"] not in order_uuids]
+		if sub_iters > 20:
+			print("Failed to get new orders... got " + str(len(new_orders))+", expected "+str(len(missing_orders)))
+			break
 
 	orders = [order for order in orders if order["OrderUuid"] not in missing_uuids]
 	orders += new_orders
@@ -96,6 +101,7 @@ while True:
 	new_order_call = btrx.get_open_orders(market=market)
 	new_orders = [order for order in new_order_call["result"] if order["OrderUuid"] not in ignore_orders]
 	new_order_uuids = [order["OrderUuid"] for order in new_orders]
+
 	missing_uuids = [uuid for uuid in order_uuids if uuid not in new_order_uuids]
 	missing_orders = [order for order in orders if order["OrderUuid"] in missing_uuids]
 
@@ -109,7 +115,6 @@ while True:
 
 	if n_iters > max_iters:
 		break
-
 	new_orders = []
 
 for order in orders:
