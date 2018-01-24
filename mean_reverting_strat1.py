@@ -73,9 +73,10 @@ n_flips = 0
 profit = 0
 
 while True:
+	# replace orders gone missing
 	for order in missing_orders:
 		current_ticker = btrx.get_ticker(market)["result"]
-
+		
 		if order["OrderType"] == "LIMIT_SELL":
 			print("Sell order filled:")
 			print("price:", order["Limit"])
@@ -105,6 +106,7 @@ while True:
 		else:
 			print("Got unexpected OrderType! : " + order["OrderType"])
 		
+		# update majority_order (used for detecting flips)
 		if n_buy_orders > n_sell_orders: 
 			majority_order = "LIMIT_BUY"
 		elif n_buy_orders < n_sell_orders:
@@ -112,6 +114,7 @@ while True:
 		else:
 			majority_order = None
 
+	# try 20 times to find the orders we just placed...
 	sub_iters = 0
 	while len(new_orders) != len(missing_orders):
 		sub_iters += 1
@@ -122,6 +125,7 @@ while True:
 			print("Failed to get new orders... got " + str(len(new_orders))+", expected "+str(len(missing_orders)))
 			break
 
+	# update previous orders with new-found orders
 	orders = [order for order in orders if order["OrderUuid"] not in missing_uuids]
 	orders += new_orders
 	order_uuids = [order["OrderUuid"] for order in orders] 
@@ -129,6 +133,7 @@ while True:
 
 	btrx.wait()
 
+	# check for orders gone missing
 	new_order_call = btrx.get_open_orders(market=market)
 	new_orders = [order for order in new_order_call["result"] if order["OrderUuid"] not in ignore_orders]
 	new_order_uuids = [order["OrderUuid"] for order in new_orders]
@@ -136,6 +141,7 @@ while True:
 	missing_uuids = [uuid for uuid in order_uuids if uuid not in new_order_uuids]
 	missing_orders = [order for order in orders if order["OrderUuid"] in missing_uuids]
 
+	# display stuff here every `display_freq` iterations
 	n_iters += 1
 	if n_iters % display_freq == 0:
 		print("Completed iteration " + str(n_iters))
@@ -147,9 +153,11 @@ while True:
 		order_types = sorted([order["OrderType"] for order in orders])
 		print(order_types)
 
+	# exit conditions
 	if n_iters > max_iters:
 		break
 	new_orders = []
 
+# cancel orders after exiting the strategy
 for order in orders:
 	btrx.cancel(order["OrderUuid"])
